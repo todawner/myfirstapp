@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "933311365585",
+    "project_id": "crazy-fa412",
+    "storage_bucket": "crazy-fa412.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933311365585:android:4eccc95b74877857e0a0f0",
+        "android_client_info": {
+          "package_name": "com.crazy.light"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "933311365585-4aqieait90irk8u46r7ult3efc9b5uia.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBci_XTxOxl5fR6clkXU51yXwRHcGIs4oo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "933311365585-4aqieait90irk8u46r7ult3efc9b5uia.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "933311365585-u3sad4uq87blv6lus1lgdn1726foekeo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.crazy.light"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
