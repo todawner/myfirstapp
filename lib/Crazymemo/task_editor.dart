@@ -103,7 +103,7 @@ class _TaskEditorState extends State<TaskEditor> {
             var now = new DateTime.now();
             // var review1 = now.add(new Duration(days: 1));
             var review1 = now;
-            var review2 = now.add(new Duration(days: 2));
+            var review2 = now.add(new Duration(days: 1));
             var review5 = now.add(new Duration(days: 5));
             var review7 = now.add(new Duration(days: 7));
             var review15 = now.add(new Duration(days: 15));

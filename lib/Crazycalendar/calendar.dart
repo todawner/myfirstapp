@@ -107,7 +107,7 @@ class _CalendarState extends State<Calendar> {
       bottomSheet: SolidBottomSheet(
               headerBar: Container(
               color: Theme.of(context).primaryColor,
-              height: 50,
+              height: Get.height/3,
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

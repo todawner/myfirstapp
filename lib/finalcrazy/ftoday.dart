@@ -20,29 +20,144 @@ import 'package:calendar/finalcrazy/Timer/todayreview.dart';
 //main.dart
 
 
+import 'package:intl/date_symbol_data_local.dart'; //캘린더한국어
+
+
+
+
 
 
 
 
 late Box box;
 
-void main() async{
 
+void main() async{
   await Hive.initFlutter(); //hive 세팅1
   Hive.registerAdapter(TaskAdapter());//hive 세팅2
   box = await Hive.openBox<Task>('tasks');//hive 세팅3
+  initializeDateFormatting().then((_) => runApp(GetMaterialApp(  //캘린더한국어
+    home:tabpage() ,
+  )));}
 
-  return runApp(GetMaterialApp(
+  //     GetMaterialApp(
+  //
+  //   initialRoute: '/',
+  //   getPages: [
+  //     GetPage(name: '/', page: () => const todaypage()),
+  //     // GetPage(name: '/one', page: () => xdaypage(), arguments: {"listDate":listDate,"ListTaskTitle":ListTaskTitle,"ListTask":ListTask} ),
+  //     GetPage(name: '/two', page: () => const maintasklist()),  //card 부분빼서 excellist ㄱ 그리고 삭제
+  //     GetPage(name: '/three', page: () => const excellist()),
+  //   ],
+  // )
 
-    initialRoute: '/',
-    getPages: [
-      GetPage(name: '/', page: () => todaypage()),
-      GetPage(name: '/one', page: () => xdaypage()),
-      GetPage(name: '/two', page: () => maintasklist()),  //card 부분빼서 excellist ㄱ 그리고 삭제
-      GetPage(name: '/three', page: () => excellist()),
-    ],
-  ));
+
+class tabpage extends StatefulWidget {
+  const tabpage({Key? key}) : super(key: key);
+
+  @override
+  State<tabpage> createState() => _tabpageState();
 }
+
+class _tabpageState extends State<tabpage> {
+
+  //tab bar
+
+  int bottomSelectedIndex = 0;
+  List<BottomNavigationBarItem> buildBottomNavBarItems() {
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
+      BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'calendar'),
+    ];
+  }
+//처음보여줄 페이지?
+  PageController pageController = PageController(
+    initialPage: 0,
+    keepPage: true,
+  );
+
+
+  Widget buildPageView() {
+    return PageView(
+      controller: pageController,
+      onPageChanged: (index) {
+        pageChanged(index);
+      },
+      children: const <Widget>[
+        todaypage(),
+        //xdaypage()
+        // Builder(
+        //   builder: (context) {
+        //     return  Get.to(()=>xdaypage(listDate,ListTaskTitle,ListTask);)
+        //   }
+
+      ],
+    );
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    pageChanged;
+    bottomTapped;
+
+  }
+
+  void pageChanged(int index) {
+    setState(() {
+      bottomSelectedIndex = index; //0,1
+    });
+  }
+
+  void bottomTapped(int index) {
+    setState(() {
+      bottomSelectedIndex = index;
+      // pageController.animateTo(
+      //   0.0,
+      //   duration: const Duration(milliseconds: 500),
+      //   curve: Curves.easeOut,
+      // );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (pageController.hasClients) {
+          pageController.animateToPage(
+              index, duration: const Duration(milliseconds: 500),
+              curve: Curves.ease);
+        }
+      });
+    });}
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body: buildPageView(),
+      bottomNavigationBar: BottomNavigationBar(
+        showUnselectedLabels: false,
+        showSelectedLabels: false,
+        currentIndex: bottomSelectedIndex,
+        onTap: (index) {
+          bottomTapped(index);
+        },
+        items: buildBottomNavBarItems(),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => {Navigator.push(context, MaterialPageRoute(builder: (context) => (TaskEditor())))},
+        icon: const Icon(Icons.add),
+        label: const Text("Add"),
+      ),
+
+    );
+  }
+}
+
+
+
+
+
+
 
 
 class todaypage extends StatefulWidget {
@@ -57,8 +172,6 @@ class todaypage extends StatefulWidget {
 
 class _todaypageState extends State<todaypage> {
   List<dynamic> _taskList = [];
-  // var Todaytitlelist = [];
-  // int index = 0;
 
   List<dynamic> Todaytitlelist = [] ; //?? ["복습없음"] // todo : 빈상태로 보내지면, initstate안에 넣기
   List<dynamic> Todaynotelist = [] ;
@@ -66,30 +179,11 @@ class _todaypageState extends State<todaypage> {
   List<dynamic> Todaytasklist = [] ;
 
 
-
-
-
-  TodayList(Today,listDate,ListTaskTitle){
-    var Todaytitlelist = [];
-    int index = 0;
-
-    if ( listDate.contains(Today) == true ) { //오늘날짜가 복습할날짜냐?
-
-      index = listDate.indexOf(Today);
-      Todaytitlelist = ListTaskTitle.elementAt(index);
-      Todaytitlelist.forEach((e)=>{Text("${e}",style: TextStyle(fontSize: 30),) });
-      return Todaytitlelist;
-
-    }else{
-      return Text("오늘복습할거없슴 얏호 ");
-
-    }}
-
-
-
-
-  //편집에서 지웠는데,
-
+  List<Iterable> ListTaskTitle = [];
+  List<Iterable> ListTaskNote = [];
+  List<Iterable> ListTaskTime = [];
+  List<Iterable> ListTask = [];
+  List<dynamic> listDate =[];
 
 
 
@@ -103,59 +197,64 @@ class _todaypageState extends State<todaypage> {
 
     return Scaffold(
       appBar: AppBar(actions : [  IconButton(
-        onPressed: () =>{Navigator.push(context, MaterialPageRoute(builder: (context) => (TaskEditor())))},
+        onPressed: () =>{Navigator.push(context, MaterialPageRoute(builder: (context) => (excellist())))},
         icon: const Icon(Icons.add),)]),
-      drawer: Drawer(
-
-
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader( child: Text('Drawer Header'), ),
-
-            ListTile(
-              leading: Icon(Icons.home),
-              title: const Text('오늘'),
-              onTap: (){
-
-                return Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.calendar_month),
-              title: const Text('달력'),
-              onTap: () {
-                Get.toNamed('/one');
-              }),
-              ListTile(
-              leading: Icon(Icons.calendar_month),
-              title: const Text('리스트'),
-              onTap: () {
-                Get.toNamed('/two');
-              }),
-              ListTile(
-              leading: Icon(Icons.light_mode),
-              title: const Text('관리-편집,삭제'),
-              onTap: () {
-                Get.toNamed('/three');
-              }),
-
-          ],
-        ),
-      ),
+      // drawer: Drawer(
+      //
+      //
+      //   child: ListView(
+      //     // Important: Remove any padding from the ListView.
+      //     padding: EdgeInsets.zero,
+      //     children: [
+      //       const DrawerHeader( child: Text('Drawer Header'), ),
+      //
+      //       ListTile(
+      //         leading: const Icon(Icons.home),
+      //         title: const Text('오늘'),
+      //         onTap: (){
+      //
+      //           return Navigator.pop(context);
+      //         },
+      //       ),
+      //       ListTile(
+      //         leading: const Icon(Icons.calendar_month),
+      //         title: const Text('달력'),
+      //         onTap: () {
+      //           Get.toNamed('/one');
+      //         }),
+      //         ListTile(
+      //         leading: const Icon(Icons.calendar_month),
+      //         title: const Text('리스트'),
+      //         onTap: () {
+      //           Get.toNamed('/two');
+      //         }),
+      //         ListTile(
+      //         leading: const Icon(Icons.light_mode),
+      //         title: const Text('관리-편집,삭제'),
+      //         onTap: () {
+      //           Get.toNamed('/three');
+      //         }),
+      //
+      //     ],
+      //   ),
+      // ),
 
 
 
 
       // 오늘 복습할것
       body:  Column(
+
           mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-          Container(child: Column(
 
-            children: [
+
+          Container(
+
+              child: Column(
+
+            children: const [
               Text('Today',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 70),),
               Text('upgrade',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 50),)
             ],
@@ -182,10 +281,10 @@ class _todaypageState extends State<todaypage> {
                       List<dynamic> listDate = setDate.toList(); //list로 다시바꿈.    [ "8/27/22", "8/28/22" ..... ]
 
 
-                      List<Iterable> ListTaskTitle = [];
-                      List<Iterable> ListTaskNote = [];
-                      List<Iterable> ListTaskTime = [];
-                      List<Iterable> ListTask = [];
+                      // List<Iterable> ListTaskTitle = [];
+                      // List<Iterable> ListTaskNote = [];
+                      // List<Iterable> ListTaskTime = [];
+                      // List<Iterable> ListTask = [];
 
 
                       for (String i in  listDate){
@@ -194,7 +293,7 @@ class _todaypageState extends State<todaypage> {
                       Iterable newlistNote = newlist.map((e) => e.note).toList(); // Task중에 note
                       Iterable newlistTime = newlist.map((e) => e.time).toList(); // Task중에 time
 
-                      ListTask.add(newlist); // 날짜와 같은 task
+                      ListTask.add(newlist); // 날짜와 같은 task // [["8/26/22"tasks ],["8/27/22"tasks], ... 오늘총8개 ,내일16개,.... ]
 
                       ListTaskTitle.add(newlistTitle); // [["8/26/22"title],["8/27/22"title] ]
                       ListTaskNote.add(newlistNote);
@@ -215,7 +314,7 @@ class _todaypageState extends State<todaypage> {
                         Todaytimelist = ListTaskTime.elementAt(index).toList();
 
                       }else{
-                        return Text("오늘복습할거없슴 얏호 ");
+                        return const Text("오늘복습할거없슴 얏호 ");
 
                       }
 
@@ -224,9 +323,9 @@ class _todaypageState extends State<todaypage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              IconButton(onPressed:(){Get.to(()=> todayreview(Todaytasklist,Todaytitlelist,Todaynotelist,Todaytimelist));} , icon: Icon(Icons.play_arrow_rounded)),
-                              SizedBox(width: 30,height: 30,),
-                              Icon(Icons.audiotrack_rounded,color: Colors.cyan),
+                              IconButton(onPressed:(){Get.to(()=> todayreview(Todaytasklist,Todaytitlelist,Todaynotelist,Todaytimelist));} , icon: const Icon(Icons.play_arrow_rounded)),
+                              const SizedBox(width: 30,height: 30,),
+                              const Icon(Icons.audiotrack_rounded,color: Colors.cyan),
                               Text("${Today}"),
                             ],
                           ),
@@ -253,6 +352,9 @@ class _todaypageState extends State<todaypage> {
 
     ))]
           ),
+
+
+
       );
   }
 }
